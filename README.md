@@ -7,11 +7,12 @@ Chart.js-inspired animated charts for [egui](https://github.com/emilk/egui).
 
 ## Features
 
-- **Smooth animations** - Bars animate with Chart.js-style easing (easeOutQuart, bounce, elastic)
+- **Multiple chart types** - Bar, Line, and Pie/Donut charts
+- **Smooth animations** - Charts animate with Chart.js-style easing (easeOutQuart, bounce, elastic)
 - **Interactive tooltips** - Hover to see values with automatic positioning
 - **Themeable** - Light, Dark, and Minimal themes included
 - **Responsive** - Charts resize to fill available space
-- **Click handling** - Detect which bar was clicked
+- **Click handling** - Detect which element was clicked
 
 ## Installation
 
@@ -27,13 +28,29 @@ egui_charts = "0.1"
 ```rust
 use egui_charts::prelude::*;
 
-// In your egui update function:
+// Bar chart
 BarChart::new()
     .data(vec![65.0, 59.0, 80.0, 81.0, 56.0])
     .labels(vec!["Mon", "Tue", "Wed", "Thu", "Fri"])
     .colors(vec!["#36a2eb", "#ff6384", "#ffce56", "#4bc0c0", "#9966ff"])
     .animate(Animation::ease_out_quart(0.8))
     .tooltip(true)
+    .show(ui);
+
+// Line chart
+LineChart::new()
+    .data(vec![28.0, 48.0, 40.0, 19.0, 86.0])
+    .labels(vec!["Mon", "Tue", "Wed", "Thu", "Fri"])
+    .color("#36a2eb")
+    .fill(true)      // Area fill under line
+    .curved(true)    // Smooth bezier curves
+    .show(ui);
+
+// Pie/Donut chart
+PieChart::new()
+    .data(vec![30.0, 25.0, 20.0, 15.0, 10.0])
+    .labels(vec!["Chrome", "Safari", "Firefox", "Edge", "Other"])
+    .donut(0.5)      // 0.0 = pie, 0.5 = donut with hole
     .show(ui);
 ```
 
@@ -52,6 +69,33 @@ BarChart::new()
 | `.size([w, h])` | Set fixed size |
 | `.grid(bool)` | Show/hide grid lines |
 | `.show(ui)` | Render and return `BarChartResponse` |
+
+### LineChart Builder
+
+| Method | Description |
+|--------|-------------|
+| `.data(vec![...])` | Set data points |
+| `.labels(vec![...])` | Set X-axis labels |
+| `.color("#hex")` | Set line color |
+| `.line_width(f32)` | Set line thickness (default: 2.0) |
+| `.fill(bool)` | Enable area fill under line |
+| `.curved(bool)` | Use bezier curves for smooth lines |
+| `.show_points(bool)` | Show data point markers |
+| `.point_radius(f32)` | Set point marker size |
+| `.animate(config)` | Configure animation |
+| `.show(ui)` | Render and return `LineChartResponse` |
+
+### PieChart Builder
+
+| Method | Description |
+|--------|-------------|
+| `.data(vec![...])` | Set segment values |
+| `.labels(vec![...])` | Set segment labels |
+| `.colors(vec![...])` | Set segment colors |
+| `.donut(f32)` | Hole ratio (0.0 = pie, 0.5 = half-radius hole) |
+| `.border_width(f32)` | Border between segments |
+| `.animate(config)` | Configure animation |
+| `.show(ui)` | Render and return `PieChartResponse` |
 
 ### Animation Options
 
