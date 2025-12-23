@@ -1,0 +1,20 @@
+[package]
+name = "egui_charts"
+version = "0.1.0"
+edition = "2021"
+description = "Chart.js-inspired animated charts for egui"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/user/egui_charts"
+keywords = ["egui", "charts", "visualization", "gui"]
+categories = ["gui", "visualization"]
+
+[dependencies]
+egui = "0.31"
+
+[dev-dependencies]
+eframe = { version = "0.31", default-features = false, features = ["default_fonts", "glow", "x11", "wayland"] }
+rand = "0.8"
+
+[[example]]
+name = "demo"
+path = "examples/demo.rs"
