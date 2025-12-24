@@ -197,7 +197,8 @@ impl PieChart {
 
         // Calculate pie geometry
         let center = rect.center();
-        let padding = 20.0;
+        // Use more padding when labels are shown outside
+        let padding = if self.show_labels || self.show_percentages { 60.0 } else { 20.0 };
         let outer_radius = (rect.width().min(rect.height()) / 2.0 - padding).max(10.0);
         let inner_radius = outer_radius * self.pie_style.donut_ratio;
 
@@ -229,7 +230,7 @@ impl PieChart {
             for (i, arc) in arcs.iter().enumerate() {
                 if progress > 0.5 {
                     // Only show labels after animation is halfway
-                    let label_radius = outer_radius + 20.0;
+                    let label_radius = outer_radius + 15.0;
                     let pos = arc.mid_point(label_radius);
 
                     let mut text = String::new();
@@ -243,15 +244,22 @@ impl PieChart {
                         if !text.is_empty() {
                             text.push_str(": ");
                         }
-                        text.push_str(&format!("{:.1}%", pct));
+                        text.push_str(&format!("{:.0}%", pct));
                     }
 
                     if !text.is_empty() {
-                        // Determine alignment based on position
-                        let align = if pos.x < center.x {
+                        // Determine alignment based on position relative to center
+                        let align = if pos.x < center.x - 10.0 {
                             egui::Align2::RIGHT_CENTER
-                        } else {
+                        } else if pos.x > center.x + 10.0 {
                             egui::Align2::LEFT_CENTER
+                        } else {
+                            // Near center horizontally - align based on vertical position
+                            if pos.y < center.y {
+                                egui::Align2::CENTER_BOTTOM
+                            } else {
+                                egui::Align2::CENTER_TOP
+                            }
                         };
 
                         painter.text(

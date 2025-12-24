@@ -40,6 +40,7 @@ pub struct LineChart {
     min_size: Vec2,
     show_grid: bool,
     show_axes: bool,
+    show_values: bool,
     line_style: LineStyle,
 }
 
@@ -57,6 +58,7 @@ impl Default for LineChart {
             min_size: Vec2::new(100.0, 80.0),
             show_grid: true,
             show_axes: true,
+            show_values: false,
             line_style: LineStyle::default(),
         }
     }
@@ -182,6 +184,12 @@ impl LineChart {
         self
     }
 
+    /// Show/hide value labels on points
+    pub fn show_values(mut self, show: bool) -> Self {
+        self.show_values = show;
+        self
+    }
+
     /// Show the chart and return response
     pub fn show(self, ui: &mut Ui) -> LineChartResponse {
         // Determine size
@@ -265,6 +273,23 @@ impl LineChart {
                 }
 
                 point.draw_animated(&painter, base_y, progress);
+            }
+        }
+
+        // Draw value labels on points
+        if self.show_values && progress > 0.5 {
+            for (i, point) in points.iter().enumerate() {
+                if let Some(&value) = self.data.get(i) {
+                    let animated_y = base_y + (point.y - base_y) * progress;
+                    let label_pos = Pos2::new(point.x, animated_y - 10.0);
+                    painter.text(
+                        label_pos,
+                        egui::Align2::CENTER_BOTTOM,
+                        format_value(value),
+                        egui::FontId::proportional(10.0),
+                        self.theme.text_color,
+                    );
+                }
             }
         }
 

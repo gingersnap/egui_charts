@@ -87,7 +87,7 @@ impl BarElement {
     }
 
     /// Calculate animated rectangle (grows from base)
-    fn animated_rect(&self, progress: f32) -> Rect {
+    pub fn animated_rect(&self, progress: f32) -> Rect {
         let full_rect = self.rect();
         let animated_height = self.height() * progress;
 

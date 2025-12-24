@@ -41,6 +41,7 @@ pub struct BarChart {
     min_size: Vec2,
     show_grid: bool,
     show_axes: bool,
+    show_values: bool,
     bar_style: Option<BarStyle>,
 }
 
@@ -58,6 +59,7 @@ impl Default for BarChart {
             min_size: Vec2::new(100.0, 80.0),
             show_grid: true,
             show_axes: true,
+            show_values: false,
             bar_style: None,
         }
     }
@@ -139,6 +141,12 @@ impl BarChart {
     /// Show/hide axes
     pub fn axes(mut self, show: bool) -> Self {
         self.show_axes = show;
+        self
+    }
+
+    /// Show/hide value labels on bars
+    pub fn show_values(mut self, show: bool) -> Self {
+        self.show_values = show;
         self
     }
 
@@ -246,6 +254,26 @@ impl BarChart {
             }
 
             bar.draw(&painter, progress);
+        }
+
+        // Draw value labels on bars
+        if self.show_values && progress > 0.5 {
+            for (i, bar) in bars.iter().enumerate() {
+                if let Some(&value) = self.data.get(i) {
+                    let animated_rect = bar.animated_rect(progress);
+                    let label_pos = Pos2::new(
+                        animated_rect.center().x,
+                        animated_rect.min.y - 5.0,
+                    );
+                    painter.text(
+                        label_pos,
+                        egui::Align2::CENTER_BOTTOM,
+                        format_value(value),
+                        egui::FontId::proportional(10.0),
+                        self.theme.text_color,
+                    );
+                }
+            }
         }
 
         // Draw axes (on top of bars)

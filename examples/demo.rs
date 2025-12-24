@@ -36,11 +36,13 @@ struct DemoApp {
     bar_width: f32,
     bar_border_radius: u8,
     bar_show_grid: bool,
+    bar_show_values: bool,
     // Line chart options
     line_fill: bool,
     line_curved: bool,
     line_show_points: bool,
     line_show_grid: bool,
+    line_show_values: bool,
     line_width: f32,
     // Pie chart options
     donut_ratio: f32,
@@ -65,11 +67,13 @@ impl Default for DemoApp {
             bar_width: 0.8,
             bar_border_radius: 4,
             bar_show_grid: true,
+            bar_show_values: false,
             // Line chart options
             line_fill: true,
             line_curved: true,
             line_show_points: true,
             line_show_grid: true,
+            line_show_values: false,
             line_width: 3.0,
             // Pie chart options
             donut_ratio: 0.5,
@@ -139,6 +143,7 @@ impl eframe::App for DemoApp {
                     ui.label("Bar Chart");
                     ui.separator();
                     ui.checkbox(&mut self.bar_show_grid, "Show Grid");
+                    ui.checkbox(&mut self.bar_show_values, "Show Values");
                     ui.add_space(8.0);
                     ui.add(
                         egui::Slider::new(&mut self.bar_width, 0.3..=1.0)
@@ -153,6 +158,7 @@ impl eframe::App for DemoApp {
                     ui.label("Line Chart");
                     ui.separator();
                     ui.checkbox(&mut self.line_show_grid, "Show Grid");
+                    ui.checkbox(&mut self.line_show_values, "Show Values");
                     ui.checkbox(&mut self.line_fill, "Area Fill");
                     ui.checkbox(&mut self.line_curved, "Curved Lines");
                     ui.checkbox(&mut self.line_show_points, "Show Points");
@@ -205,6 +211,7 @@ impl eframe::App for DemoApp {
                             .bar_width(self.bar_width)
                             .border_radius(self.bar_border_radius)
                             .grid(self.bar_show_grid)
+                            .show_values(self.bar_show_values)
                             .animate(Animation::custom(Easing::EaseOutQuart, self.animation_duration))
                             .tooltip(self.show_tooltip)
                             .theme_preset(self.theme)
@@ -230,6 +237,7 @@ impl eframe::App for DemoApp {
                             .fill(self.line_fill)
                             .curved(self.line_curved)
                             .show_points(self.line_show_points)
+                            .show_values(self.line_show_values)
                             .line_width(self.line_width)
                             .point_radius(5.0)
                             .grid(self.line_show_grid)

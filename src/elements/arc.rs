@@ -104,7 +104,8 @@ impl ArcElement {
         }
 
         // Build polygon points for the arc
-        let segments = ((end - start).abs() * 32.0 / PI).max(8.0) as usize;
+        // Use more segments for smoother curves (64 per full circle minimum)
+        let segments = ((end - start).abs() * 64.0 / PI).max(16.0) as usize;
         let mut points = Vec::with_capacity(segments * 2 + 2);
 
         // Outer arc (clockwise)
