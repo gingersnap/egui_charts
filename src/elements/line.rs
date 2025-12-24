@@ -263,26 +263,96 @@ impl LineElement {
         self.draw_fill_path(painter, &positions, base_y, fill_color);
     }
 
-    /// Draw the fill path as a polygon
+    /// Draw the fill path using triangulation for non-convex shapes
     fn draw_fill_path(&self, painter: &Painter, positions: &[Pos2], base_y: f32, fill_color: Color32) {
         if positions.len() < 2 {
             return;
         }
 
-        // Create polygon: line points + bottom corners
-        let mut polygon: Vec<Pos2> = positions.to_vec();
+        // For curved lines, we need to collect all the curve points
+        let curve_points = if self.curved && positions.len() > 2 {
+            self.collect_curve_points(positions)
+        } else {
+            positions.to_vec()
+        };
 
-        // Add bottom right and bottom left corners
-        polygon.push(Pos2::new(positions.last().unwrap().x, base_y));
-        polygon.push(Pos2::new(positions.first().unwrap().x, base_y));
+        // Draw fill as a series of triangles (fan triangulation from baseline)
+        // Each triangle connects: baseline_left, curve_point[i], curve_point[i+1]
+        // Plus vertical strips from each curve point to baseline
+        use egui::epaint::Mesh;
 
-        // Draw as filled convex polygon (works for simple cases)
-        // For complex curves, we'd need triangulation
-        painter.add(egui::Shape::convex_polygon(
-            polygon,
-            fill_color,
-            Stroke::NONE,
-        ));
+        let mut mesh = Mesh::default();
+
+        // Add vertices for all curve points and their baseline projections
+        for point in &curve_points {
+            // Curve point
+            mesh.vertices.push(egui::epaint::Vertex {
+                pos: *point,
+                uv: egui::epaint::WHITE_UV,
+                color: fill_color,
+            });
+            // Baseline point directly below
+            mesh.vertices.push(egui::epaint::Vertex {
+                pos: Pos2::new(point.x, base_y),
+                uv: egui::epaint::WHITE_UV,
+                color: fill_color,
+            });
+        }
+
+        // Create triangles: for each adjacent pair of points, create 2 triangles
+        // forming a quad from curve to baseline
+        for i in 0..(curve_points.len() - 1) {
+            let top_left = (i * 2) as u32;      // curve point i
+            let bottom_left = (i * 2 + 1) as u32;  // baseline below i
+            let top_right = (i * 2 + 2) as u32; // curve point i+1
+            let bottom_right = (i * 2 + 3) as u32; // baseline below i+1
+
+            // Triangle 1: top_left, bottom_left, top_right
+            mesh.indices.extend([top_left, bottom_left, top_right]);
+            // Triangle 2: top_right, bottom_left, bottom_right
+            mesh.indices.extend([top_right, bottom_left, bottom_right]);
+        }
+
+        painter.add(egui::Shape::mesh(mesh));
+    }
+
+    /// Collect all points along the curved line (including bezier interpolation)
+    fn collect_curve_points(&self, positions: &[Pos2]) -> Vec<Pos2> {
+        if positions.len() < 3 {
+            return positions.to_vec();
+        }
+
+        let control_points = self.calculate_control_points(positions);
+        let mut all_points = Vec::new();
+        let segments = 16;
+
+        for i in 0..positions.len() - 1 {
+            let p0 = positions[i];
+            let p1 = positions[i + 1];
+            let (cp1, cp2) = &control_points[i];
+
+            // Add start point (only for first segment)
+            if i == 0 {
+                all_points.push(p0);
+            }
+
+            // Add bezier interpolation points
+            for j in 1..=segments {
+                let t = j as f32 / segments as f32;
+                let t2 = t * t;
+                let t3 = t2 * t;
+                let mt = 1.0 - t;
+                let mt2 = mt * mt;
+                let mt3 = mt2 * mt;
+
+                let x = mt3 * p0.x + 3.0 * mt2 * t * cp1.x + 3.0 * mt * t2 * cp2.x + t3 * p1.x;
+                let y = mt3 * p0.y + 3.0 * mt2 * t * cp1.y + 3.0 * mt * t2 * cp2.y + t3 * p1.y;
+
+                all_points.push(Pos2::new(x, y));
+            }
+        }
+
+        all_points
     }
 }
 

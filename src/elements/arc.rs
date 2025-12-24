@@ -140,28 +140,9 @@ impl ArcElement {
                 Stroke::NONE,
             ));
 
-            // Draw border
+            // Draw border between segments (radial lines only)
             if self.border_width > 0.0 {
-                // Draw outer arc border
-                let outer_points: Vec<Pos2> = (0..=segments)
-                    .map(|i| {
-                        let t = i as f32 / segments as f32;
-                        let angle = start + (end - start) * t;
-                        Pos2::new(
-                            self.center.x + angle.cos() * self.outer_radius,
-                            self.center.y + angle.sin() * self.outer_radius,
-                        )
-                    })
-                    .collect();
-
-                for i in 0..outer_points.len() - 1 {
-                    painter.line_segment(
-                        [outer_points[i], outer_points[i + 1]],
-                        Stroke::new(self.border_width, self.border_color),
-                    );
-                }
-
-                // Draw radial lines at start and end
+                // Draw radial line at start angle
                 let start_outer = Pos2::new(
                     self.center.x + start.cos() * self.outer_radius,
                     self.center.y + start.sin() * self.outer_radius,
@@ -179,6 +160,7 @@ impl ArcElement {
                     Stroke::new(self.border_width, self.border_color),
                 );
 
+                // Draw radial line at end angle
                 let end_outer = Pos2::new(
                     self.center.x + end.cos() * self.outer_radius,
                     self.center.y + end.sin() * self.outer_radius,
@@ -195,27 +177,6 @@ impl ArcElement {
                     [end_inner, end_outer],
                     Stroke::new(self.border_width, self.border_color),
                 );
-
-                // Draw inner arc border (for donut)
-                if self.inner_radius > 0.0 {
-                    let inner_points: Vec<Pos2> = (0..=segments)
-                        .map(|i| {
-                            let t = i as f32 / segments as f32;
-                            let angle = start + (end - start) * t;
-                            Pos2::new(
-                                self.center.x + angle.cos() * self.inner_radius,
-                                self.center.y + angle.sin() * self.inner_radius,
-                            )
-                        })
-                        .collect();
-
-                    for i in 0..inner_points.len() - 1 {
-                        painter.line_segment(
-                            [inner_points[i], inner_points[i + 1]],
-                            Stroke::new(self.border_width, self.border_color),
-                        );
-                    }
-                }
             }
         }
     }

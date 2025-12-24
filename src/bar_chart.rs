@@ -148,6 +148,34 @@ impl BarChart {
         self
     }
 
+    /// Set bar width percentage (0.0 to 1.0)
+    pub fn bar_width(mut self, percentage: f32) -> Self {
+        let style = self.bar_style.get_or_insert_with(BarStyle::default);
+        style.bar_percentage = percentage.clamp(0.1, 1.0);
+        self
+    }
+
+    /// Set bar corner radius
+    pub fn border_radius(mut self, radius: u8) -> Self {
+        let style = self.bar_style.get_or_insert_with(BarStyle::default);
+        style.border_radius = CornerRadius::same(radius);
+        self
+    }
+
+    /// Set bar border width
+    pub fn border_width(mut self, width: f32) -> Self {
+        let style = self.bar_style.get_or_insert_with(BarStyle::default);
+        style.border_width = width;
+        self
+    }
+
+    /// Set bar border color
+    pub fn border_color(mut self, color: impl Into<ChartColor>) -> Self {
+        let style = self.bar_style.get_or_insert_with(BarStyle::default);
+        style.border_color = color.into().to_color32();
+        self
+    }
+
     /// Show the chart and return response
     pub fn show(self, ui: &mut Ui) -> BarChartResponse {
         // Determine size
