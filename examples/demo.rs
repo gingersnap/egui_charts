@@ -28,6 +28,7 @@ struct DemoApp {
     pie_data: Vec<f64>,
     labels: Vec<String>,
     pie_labels: Vec<String>,
+    // Common options
     theme: ThemePreset,
     animation_duration: f32,
     show_tooltip: bool,
@@ -59,6 +60,7 @@ impl Default for DemoApp {
             pie_data: vec![30.0, 25.0, 20.0, 15.0, 10.0],
             labels: vec!["Mon".into(), "Tue".into(), "Wed".into(), "Thu".into(), "Fri".into(), "Sat".into(), "Sun".into()],
             pie_labels: vec!["Chrome".into(), "Safari".into(), "Firefox".into(), "Edge".into(), "Other".into()],
+            // Common options
             theme: ThemePreset::Light,
             animation_duration: 0.8,
             show_tooltip: true,
@@ -85,6 +87,7 @@ impl Default for DemoApp {
 
 impl eframe::App for DemoApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        // Top panel - chart type and data controls only
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
             ui.horizontal(|ui| {
                 ui.heading("egui_charts");
@@ -97,7 +100,7 @@ impl eframe::App for DemoApp {
 
                 ui.separator();
 
-                if ui.button("Randomize").clicked() {
+                if ui.button("Randomize Data").clicked() {
                     let mut rng = rand::thread_rng();
                     match self.chart_type {
                         ChartType::Bar => {
@@ -111,9 +114,16 @@ impl eframe::App for DemoApp {
                         }
                     }
                 }
+            });
+        });
 
-                ui.separator();
+        // Left side panel - all appearance options
+        egui::SidePanel::left("options").min_width(180.0).show(ctx, |ui| {
+            // Common options section
+            ui.heading("Common");
+            ui.separator();
 
+            ui.horizontal(|ui| {
                 ui.label("Theme:");
                 egui::ComboBox::from_id_salt("theme")
                     .selected_text(format!("{:?}", self.theme))
@@ -122,25 +132,25 @@ impl eframe::App for DemoApp {
                         ui.selectable_value(&mut self.theme, ThemePreset::Dark, "Dark");
                         ui.selectable_value(&mut self.theme, ThemePreset::Minimal, "Minimal");
                     });
-
-                ui.separator();
-                ui.checkbox(&mut self.show_tooltip, "Tooltips");
-                ui.checkbox(&mut self.show_legend, "Legend");
-
-                ui.separator();
-                ui.label("Animation:");
-                ui.add(egui::Slider::new(&mut self.animation_duration, 0.0..=2.0).suffix("s"));
             });
-        });
 
-        // Side panel for chart-specific options
-        egui::SidePanel::left("options").min_width(160.0).show(ctx, |ui| {
-            ui.heading("Options");
-            ui.separator();
+            ui.add_space(4.0);
+            ui.checkbox(&mut self.show_tooltip, "Show Tooltips");
+            ui.checkbox(&mut self.show_legend, "Show Legend");
 
+            ui.add_space(4.0);
+            ui.add(
+                egui::Slider::new(&mut self.animation_duration, 0.0..=2.0)
+                    .text("Animation")
+                    .suffix("s"),
+            );
+
+            ui.add_space(16.0);
+
+            // Chart-specific options section
             match self.chart_type {
                 ChartType::Bar => {
-                    ui.label("Bar Chart");
+                    ui.heading("Bar Options");
                     ui.separator();
                     ui.checkbox(&mut self.bar_show_grid, "Show Grid");
                     ui.checkbox(&mut self.bar_show_values, "Show Values");
@@ -155,7 +165,7 @@ impl eframe::App for DemoApp {
                     );
                 }
                 ChartType::Line => {
-                    ui.label("Line Chart");
+                    ui.heading("Line Options");
                     ui.separator();
                     ui.checkbox(&mut self.line_show_grid, "Show Grid");
                     ui.checkbox(&mut self.line_show_values, "Show Values");
@@ -169,7 +179,7 @@ impl eframe::App for DemoApp {
                     );
                 }
                 ChartType::Pie => {
-                    ui.label("Pie Chart");
+                    ui.heading("Pie Options");
                     ui.separator();
                     ui.checkbox(&mut self.pie_show_labels, "Show Labels");
                     ui.checkbox(&mut self.pie_show_percentages, "Show Percentages");
@@ -182,6 +192,7 @@ impl eframe::App for DemoApp {
             }
         });
 
+        // Main chart area
         egui::CentralPanel::default().show(ctx, |ui| {
             // Apply dark background if dark theme
             if self.theme == ThemePreset::Dark {
@@ -218,7 +229,6 @@ impl eframe::App for DemoApp {
                             .size([600.0, 350.0])
                             .show(ui);
 
-                        // Draw legend
                         if self.show_legend {
                             ui.add_space(15.0);
                             draw_legend(ui, &self.labels, &colors, self.theme);
@@ -247,7 +257,6 @@ impl eframe::App for DemoApp {
                             .size([600.0, 350.0])
                             .show(ui);
 
-                        // Draw legend
                         if self.show_legend {
                             ui.add_space(15.0);
                             draw_legend(ui, &["Temperature".to_string()], &[color], self.theme);
@@ -272,7 +281,6 @@ impl eframe::App for DemoApp {
                             .size([350.0, 350.0])
                             .show(ui);
 
-                        // Draw legend
                         if self.show_legend {
                             ui.add_space(15.0);
                             draw_legend(ui, &self.pie_labels, &colors, self.theme);
@@ -299,11 +307,8 @@ fn draw_legend<S: AsRef<str>>(ui: &mut egui::Ui, labels: &[S], colors: &[&str], 
             let color = parse_color(color_str);
 
             ui.horizontal(|ui| {
-                // Color box
                 let (rect, _) = ui.allocate_exact_size(egui::vec2(12.0, 12.0), egui::Sense::hover());
                 ui.painter().rect_filled(rect, 2.0, color);
-
-                // Label
                 ui.label(egui::RichText::new(label.as_ref()).color(text_color).size(12.0));
             });
         }
