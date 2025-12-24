@@ -224,6 +224,17 @@ impl PieChart {
             arc.draw_animated(&painter, progress);
         }
 
+        // Draw donut hole as a filled circle on top for perfectly round inner edge
+        if inner_radius > 0.0 {
+            let hole_color = if self.theme.background_color != Color32::TRANSPARENT {
+                self.theme.background_color
+            } else {
+                // Use white or dark based on theme
+                Color32::WHITE
+            };
+            painter.circle_filled(center, inner_radius, hole_color);
+        }
+
         // Draw labels
         if self.show_labels || self.show_percentages {
             let total: f64 = self.data.iter().sum();
